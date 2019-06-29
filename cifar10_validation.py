@@ -244,3 +244,27 @@ plt.tight_layout()
 plt.show()
 
 outputs = net(images)
+
+def drawResult():
+
+    fig = plt.figure()
+    fig.set_size_inches(10.5, 7.5)
+    plot_title = ["1", "2", "3", "4"]
+
+    subplots = []
+
+    for i in range(1, 4):
+        subplot = fig.add_subplot(2, 2, i)
+        subplot.set_xlim([0, 10])
+        subplot.set_ylim([0.94, 1.001])
+        subplot.set_title(plot_title[i])
+        subplot.margins(x=0.1, y=0.05)
+        subplots[0] = subplot
+
+    subplots[0].plot(train_accuracy)
+    subplots[1].plot(train_losses)
+    subplots[2].plot(test_accuracy)
+    subplots[3].plot(test_losses)
+    plt.legend(frameon=False)
+    plt.tight_layout()
+    plt.show()
