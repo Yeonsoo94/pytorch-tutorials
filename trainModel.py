@@ -25,7 +25,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
     label_acc_per_epoch = [[0] * num_epochs for i in range(10)]
     label_val_per_epoch = [[0] * num_epochs for i in range(10)]
 
-    mini_batch = 500
+    mini_batch = 300
 
     batch_loss = 0.0
     for epoch in range(num_epochs):
@@ -41,6 +41,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
         class_total_train = list(0. for i in range(10))
 
         # Each epoch has a training and validation phase
+        j = 0;
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()  # Set model to training mode
@@ -50,8 +51,11 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
             running_loss = 0.0
             running_corrects = 0
 
+            batch_loss = 0.0
+
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for (inputs, labels) in dataloaders[phase]:
+
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -63,21 +67,20 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                 # forward
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
-                    # Get model outputs and calculate loss
-                    # Special case for inception because in training it has an auxiliary output. In train
-                    #   mode we calculate the loss by summing the final output and the auxiliary output
-                    #   but in testing we only consider the final output.
+
                     if is_inception and phase == 'train':
                         # From https://discuss.pytorch.org/t/how-to-optimize-inception-model-with-auxiliary-classifiers/7958
                         outputs, aux_outputs = model(inputs)
                         loss1 = criterion(outputs, labels)
                         loss2 = criterion(aux_outputs, labels)
                         loss = loss1 + 0.4 * loss2
+
+                        batch_loss += loss.item()
                     else:
                         outputs = model(inputs)
                         loss = criterion(outputs, labels)
 
-                    batch_loss += loss.item()
+                        batch_loss += loss.item()
 
                     _, preds = torch.max(outputs, 1)
                     c = (preds == labels).squeeze()
@@ -94,14 +97,13 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                         loss.backward()
                         optimizer.step()
 
-
                     if phase == 'train':
-                        if i % mini_batch == (mini_batch - 1):  # print every 2000 mini-batches
+                        if j % mini_batch == (mini_batch - 1):  # print every 2000 mini-batches
                             train_acc_iter = correct_train_iter / total_train_iter
                             train_loss_iter = batch_loss / mini_batch
 
                             print('\n[%d, %5d] loss: %.3f accuracy: %.3f' % (
-                            epoch + 1, i + 1, train_loss_iter, train_acc_iter))
+                            epoch + 1, j + 1, train_loss_iter, train_acc_iter))
 
                             batch_loss = 0.0
 
@@ -109,8 +111,10 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
-            epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+                j += 1
+
+            epoch_loss = running_loss / len(dataloaders[phase].sampler)
+            epoch_acc = running_corrects.double() / len(dataloaders[phase].sampler)
 
             if phase == 'train':
                 for i in range(10):
@@ -144,4 +148,14 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, val_acc_history
+
+    history = {
+                "train_losses": train_losses,
+                "train_accuracies": train_accuracies,
+                "test_losses": train_losses,
+                "test_accuracies": train_accuracies,
+                "label_acc_per_epoch": label_acc_per_epoch,
+                "label_val_per_epoch": label_val_per_epoch
+                }
+
+    return model, history
