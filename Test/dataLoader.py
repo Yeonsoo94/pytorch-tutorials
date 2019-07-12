@@ -3,18 +3,6 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np
-import logging
-import json
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import InitializeModels
-import trainModel
-import dataLoader
-from torchvision import models
 class DataLoader:
 
     classes_mnist = ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10')
@@ -38,7 +26,7 @@ class DataLoader:
         else:
             transform = transforms.Compose(
                 [
-                    transforms.RandomResizedCrop(imageSize),
+                    transforms.RandomResizedCrop(self.imageSize),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -64,7 +52,7 @@ class DataLoader:
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
 
-        return train_sampler,valid_sampler
+        return train_sampler, valid_sampler
 
     def loadDataset(self, train_sampler, valid_sampler, trainset, testset):
         trainloader = torch.utils.data.DataLoader(

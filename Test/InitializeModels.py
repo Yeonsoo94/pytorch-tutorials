@@ -1,6 +1,8 @@
 from torchvision import models
 import torch.nn as nn
-import net
+from Test import net
+
+
 def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
@@ -80,6 +82,6 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     else:
         print("Invalid model name, exiting...")
         exit()
-
     return model_ft, input_size
+
 

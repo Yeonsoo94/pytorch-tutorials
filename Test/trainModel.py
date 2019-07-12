@@ -6,7 +6,6 @@ import copy
 import time
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):
-
     since = time.time()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -16,7 +15,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
-    train_losses = list(0. for i in range(num_epochs))
+    train_losses = [0. for i in range(num_epochs)]
     test_losses = list(0. for i in range(num_epochs))
 
     train_accuracies = list(0. for i in range(num_epochs))
@@ -37,16 +36,15 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
         class_correct = list(0. for i in range(10))
         class_total = list(0. for i in range(10))
 
-        class_correct_train = list(0. for i in range(10))
-        class_total_train = list(0. for i in range(10))
-
         # Each epoch has a training and validation phase
-        j = 0;
+        j = 0
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()  # Set model to training mode
+                #torch.set_grad_enabled(True)
             else:
                 model.eval()  # Set model to evaluate mode
+                #torch.set_grad_enabled(False) # evaluation faster
 
             running_loss = 0.0
             running_corrects = 0
@@ -74,17 +72,15 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                         loss1 = criterion(outputs, labels)
                         loss2 = criterion(aux_outputs, labels)
                         loss = loss1 + 0.4 * loss2
-
-                        batch_loss += loss.item()
                     else:
                         outputs = model(inputs)
                         loss = criterion(outputs, labels)
 
-                        batch_loss += loss.item()
+                    batch_loss += loss.item()
 
                     _, preds = torch.max(outputs, 1)
                     c = (preds == labels).squeeze()
-                    total_train_iter += labels.size(0)  ##32
+                    total_train_iter += labels.size(0)  ## 32
                     correct_train_iter += preds.eq(labels).sum().item()  ## 0~32
 
                     for i in range(len(labels)):
@@ -119,7 +115,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
             if phase == 'train':
                 for i in range(10):
                     acc = class_correct[i] / class_total[i]
-                    label_acc_per_epoch[i][epoch] = acc
+                    ################## GPU -> CPU memory problem // python Garbage Collector X
+                    label_acc_per_epoch[i][epoch] = acc.detach().cpu().numpy()
 
                 train_losses[epoch] = epoch_loss
                 train_accuracies[epoch] = epoch_acc
@@ -149,6 +146,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
     # load best model weights
     model.load_state_dict(best_model_wts)
 
+    #######
+
     history = {
                 "train_losses": train_losses,
                 "train_accuracies": train_accuracies,
@@ -156,6 +155,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                 "test_accuracies": train_accuracies,
                 "label_acc_per_epoch": label_acc_per_epoch,
                 "label_val_per_epoch": label_val_per_epoch
-                }
+            }
 
     return model, history
