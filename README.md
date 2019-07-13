@@ -7,3 +7,7 @@ https://colab.research.google.com/github/Yeonsoo94/pytorch-tutorials/blob/master
 
 Go to runtime/change runtime type, select GPU for hardware acceleration. 
 Run your training on GPU for free!
+
+#### Modify the neural network to improve accuracy
+
+Try using Dropout, batch normalization in custom network.
