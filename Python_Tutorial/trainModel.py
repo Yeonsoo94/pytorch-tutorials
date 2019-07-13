@@ -32,13 +32,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
-        epoch_loss = 0.0
-
         class_correct = list(0. for i in range(10))
         class_total = list(0. for i in range(10))
-
-        class_correct_train = list(0. for i in range(10))
-        class_total_train = list(0. for i in range(10))
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
