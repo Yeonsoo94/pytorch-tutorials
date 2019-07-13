@@ -1,12 +1,14 @@
 from torchvision import models
 import torch.nn as nn
-import net
+from Python_Tutorial import net
+
+
 def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
 
-def initialize_model(model_name, num_classes, feature_extract, input_size = 0, use_pretrained=True):
+def initialize_model(model_name, num_classes, feature_extract, use_pretrained=True):
     # Initialize these variables which will be set in this if statement. Each of these
     #   variables is model specific.
     model_ft = None
@@ -56,7 +58,7 @@ def initialize_model(model_name, num_classes, feature_extract, input_size = 0, u
         model_ft.classifier = nn.Linear(num_ftrs, num_classes)
         input_size = 224
 
-    elif model_name == "inception":
+    elif model_name == "inceptionv3":
         """ Inception v3 
         Be careful, expects (299,299) sized images and has auxiliary output
         """
@@ -71,7 +73,8 @@ def initialize_model(model_name, num_classes, feature_extract, input_size = 0, u
 
         model_ft = net.Net()
         model_ft.num_classes = num_classes
-        input_size = input_size
+
+        input_size = 32
 
     else:
         print("Invalid model name, exiting...")
