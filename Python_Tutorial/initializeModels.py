@@ -63,8 +63,6 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         Be careful, expects (299,299) sized images and has auxiliary output
         """
         model_ft = models.inception_v3(pretrained=use_pretrained, aux_logits=False)
-        num_ftrs = model_ft.classifier.in_features
-        model_ft.fc = nn.Linear(num_ftrs, num_classes)  # where args.num_classes = 8142
         model_ft.aux_logits = False
 
         input_size = 299
